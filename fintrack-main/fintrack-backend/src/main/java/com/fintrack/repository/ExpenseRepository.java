@@ -17,6 +17,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByUserAndDateBetween(User user, LocalDate start, LocalDate end);
 
     /**
+     * Fetches expenses for a specific year for the given user.
+     */
+    @Query("SELECT e FROM Expense e WHERE e.user = :user AND YEAR(e.date) = :year ORDER BY e.date")
+    List<Expense> findAllByUserAndYear(@Param("user") User user, @Param("year") int year);
+
+    /**
      * Fetches expenses for a specific month and year for the given user.
      */
     @Query("SELECT e FROM Expense e WHERE e.user = :user AND YEAR(e.date) = :year AND MONTH(e.date) = :month ORDER BY e.date")

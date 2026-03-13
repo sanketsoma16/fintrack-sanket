@@ -8,18 +8,21 @@ const Reports = () => {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [downloading, setDownloading] = useState<'csv' | 'pdf' | null>(null);
+  const [downloading, setDownloading] = useState<'csv' | 'pdf-monthly' | 'pdf-yearly' | null>(null);
 
-  const handleExport = async (type: 'csv' | 'pdf') => {
+  const handleExport = async (type: 'csv' | 'pdf-monthly' | 'pdf-yearly') => {
     setDownloading(type);
     try {
       if (type === 'csv') {
         await reportService.exportCsv();
-      } else {
+      } else if (type === 'pdf-monthly') {
         await reportService.exportMonthlyPdf(selectedYear, selectedMonth);
+      } else {
+        await reportService.exportYearlyPdf(selectedYear);
       }
     } catch (error) {
-      alert(`Failed to export ${type.toUpperCase()}. Please try again.`);
+      const label = type === 'csv' ? 'CSV' : 'PDF';
+      alert(`Failed to export ${label}. Please try again.`);
     } finally {
       setDownloading(null);
     }
@@ -47,7 +50,7 @@ const Reports = () => {
         <div className="report-card">
           <div className="report-icon">📄</div>
           <h2>PDF Export</h2>
-          <p>Generate a formatted PDF report for a specific month. Great for printing or sharing.</p>
+          <p>Generate a formatted PDF report for a specific month or a full year. Great for printing or sharing.</p>
           <div className="report-selectors">
             <div className="selector-group">
               <label htmlFor="pdf-month">Month</label>
@@ -73,13 +76,22 @@ const Reports = () => {
               />
             </div>
           </div>
-          <button
-            onClick={() => handleExport('pdf')}
-            disabled={downloading !== null}
-            className="btn-primary"
-          >
-            {downloading === 'pdf' ? 'Generating...' : 'Download PDF'}
-          </button>
+          <div className="report-actions">
+            <button
+              onClick={() => handleExport('pdf-monthly')}
+              disabled={downloading !== null}
+              className="btn-primary"
+            >
+              {downloading === 'pdf-monthly' ? 'Generating...' : 'Download Monthly PDF'}
+            </button>
+            <button
+              onClick={() => handleExport('pdf-yearly')}
+              disabled={downloading !== null}
+              className="btn-secondary"
+            >
+              {downloading === 'pdf-yearly' ? 'Generating...' : 'Download Yearly PDF'}
+            </button>
+          </div>
         </div>
       </div>
 

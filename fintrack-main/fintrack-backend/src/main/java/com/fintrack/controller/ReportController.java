@@ -57,5 +57,20 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .body(bytes);
     }
+
+    /**
+     * Yearly PDF report filtered by year.
+     * File name: expenses-YYYY.pdf
+     */
+    @GetMapping("/pdf/yearly")
+    public ResponseEntity<byte[]> exportYearlyPdf(@RequestParam int year) {
+        ByteArrayInputStream stream = reportService.generateYearlyPdf(year);
+        byte[] bytes = stream.readAllBytes();
+        String filename = String.format("expenses-%d.pdf", year);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .body(bytes);
+    }
 }
 

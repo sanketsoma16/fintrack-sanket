@@ -48,6 +48,27 @@
   flex-wrap: wrap;
 }
 
+.report-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: #0f172a;
+  color: white;
+}
+
+.btn-secondary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .selector-group {
   display: flex;
   flex-direction: column;

@@ -192,6 +192,62 @@ public class ReportService {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
+    /**
+     * Generates a PDF report for a specific year.
+     * Returns filtered expenses; if none found, PDF still generated with message.
+     */
+    public ByteArrayInputStream generateYearlyPdf(int year) {
+        User user = getCurrentUser();
+        List<Expense> expenses = expenseRepository.findAllByUserAndYear(user, year);
+        String reportTitle = "Expense Report - " + year;
+
+        Document document = new Document();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            document.open();
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+            document.add(new Paragraph(reportTitle, titleFont));
+            document.add(new Paragraph(" "));
+
+            if (expenses.isEmpty()) {
+                document.add(new Paragraph("No expenses found for this year.", titleFont));
+                document.close();
+                return new ByteArrayInputStream(out.toByteArray());
+            }
+
+            Map<String, BigDecimal> categoryTotals = expenses.stream()
+                    .collect(Collectors.groupingBy(
+                            e -> resolveCategory(e.getCategoryId()),
+                            Collectors.mapping(Expense::getAmount,
+                                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
+            addCategoryPieChart(document, writer, categoryTotals, "Expenses by Category");
+
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Detailed Expenses", titleFont));
+            document.add(new Paragraph(" "));
+
+            PdfPTable table = new PdfPTable(5);
+            addHeader(table, "Date");
+            addHeader(table, "Category");
+            addHeader(table, "Amount");
+            addHeader(table, "Payment Mode");
+            addHeader(table, "Description");
+            for (Expense expense : expenses) {
+                table.addCell(expense.getDate().format(DATE_FORMATTER));
+                table.addCell(resolveCategory(expense.getCategoryId()));
+                table.addCell(formatAmount(expense.getAmount()));
+                table.addCell(expense.getPaymentMode());
+                table.addCell(expense.getDescription() == null ? "" : expense.getDescription());
+            }
+            document.add(table);
+            document.close();
+        } catch (DocumentException e) {
+            throw new RuntimeException("Failed to create yearly PDF report", e);
+        }
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
     private void addCategoryPieChart(Document document,
                                      PdfWriter writer,
                                      Map<String, BigDecimal> categoryTotals,
